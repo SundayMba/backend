@@ -1,0 +1,6 @@
+@Genderize.Api_HostAddress = http://localhost:5073
+
+GET {{Genderize.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

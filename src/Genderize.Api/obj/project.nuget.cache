@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "dgSpecHash": "L9zfZ/Oo38Y=",
+  "success": true,
+  "projectFilePath": "/Users/ios/Desktop/Programming/HNG14-APP/stage0/backend/src/Genderize.Api/Genderize.Api.csproj",
+  "expectedPackageFiles": [
+    "/Users/ios/.nuget/packages/microsoft.extensions.apidescription.server/6.0.5/microsoft.extensions.apidescription.server.6.0.5.nupkg.sha512",
+    "/Users/ios/.nuget/packages/microsoft.openapi/1.2.3/microsoft.openapi.1.2.3.nupkg.sha512",
+    "/Users/ios/.nuget/packages/swashbuckle.aspnetcore/6.5.0/swashbuckle.aspnetcore.6.5.0.nupkg.sha512",
+    "/Users/ios/.nuget/packages/swashbuckle.aspnetcore.swagger/6.5.0/swashbuckle.aspnetcore.swagger.6.5.0.nupkg.sha512",
+    "/Users/ios/.nuget/packages/swashbuckle.aspnetcore.swaggergen/6.5.0/swashbuckle.aspnetcore.swaggergen.6.5.0.nupkg.sha512",
+    "/Users/ios/.nuget/packages/swashbuckle.aspnetcore.swaggerui/6.5.0/swashbuckle.aspnetcore.swaggerui.6.5.0.nupkg.sha512",
+    "/Users/ios/.nuget/packages/microsoft.aspnetcore.app.ref/8.0.20/microsoft.aspnetcore.app.ref.8.0.20.nupkg.sha512",
+    "/Users/ios/.nuget/packages/microsoft.netcore.app.host.osx-x64/8.0.20/microsoft.netcore.app.host.osx-x64.8.0.20.nupkg.sha512",
+    "/Users/ios/.nuget/packages/microsoft.netcore.app.ref/8.0.20/microsoft.netcore.app.ref.8.0.20.nupkg.sha512"
+  ],
+  "logs": []
+}
