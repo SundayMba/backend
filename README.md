@@ -70,10 +70,42 @@ dotnet build Genderize.sln
 dotnet run --project src/Genderize.Api/Genderize.Api.csproj
 ```
 
-Swagger is available in development.
+Local HTTP URL:
+
+- `http://localhost:5073`
+
+Swagger is available in development at:
+
+- `http://localhost:5073/swagger`
 
 ## Quick Test
 
 ```bash
-curl "http://localhost:5080/api/classify?name=john"
+curl "http://localhost:5073/api/classify?name=john"
+```
+
+## Run With Docker
+
+Build the image:
+
+```bash
+docker build -t genderize-api .
+```
+
+Run the container:
+
+```bash
+docker run --rm -p 8080:8080 genderize-api
+```
+
+Call the API:
+
+```bash
+curl "http://localhost:8080/api/classify?name=john"
+```
+
+If you want Swagger inside the container too, run:
+
+```bash
+docker run --rm -p 8080:8080 -e ASPNETCORE_ENVIRONMENT=Development genderize-api
 ```

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Genderize.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+71f377e073970593b5e480ca13fe776f65ed443a")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+db93aa53c71b71bad81a1c6bfd1c300eac26f586")]
 [assembly: System.Reflection.AssemblyProductAttribute("Genderize.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Genderize.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
