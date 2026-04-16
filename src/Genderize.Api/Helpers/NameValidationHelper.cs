@@ -33,7 +33,7 @@ public static partial class NameValidationHelper
 
         var normalizedValue = value.Trim();
 
-        if (ReservedNonNameValues.Contains(normalizedValue) || !NamePattern().IsMatch(normalizedValue))
+        if (!IsHumanReadableName(normalizedValue))
         {
             return NameValidationResult.Invalid(
                 StatusCodes.Status422UnprocessableEntity,
@@ -41,6 +41,11 @@ public static partial class NameValidationHelper
         }
 
         return NameValidationResult.Valid(normalizedValue);
+    }
+
+    public static bool IsHumanReadableName(string value)
+    {
+        return !ReservedNonNameValues.Contains(value) && NamePattern().IsMatch(value);
     }
 
     [GeneratedRegex(@"^\p{L}+(?:[ '-]\p{L}+)*$", RegexOptions.CultureInvariant)]

@@ -1,34 +1,74 @@
-# Genderize API
+# Backend Wizards Stage 1 API
 
 ## Overview
 
-This is a .NET 8 ASP.NET Core Web API that exposes:
+This project is a .NET 8 ASP.NET Core Web API backed by PostgreSQL.
 
-- `GET /api/classify?name={name}`
+It accepts a name, calls three external APIs, applies classification logic, stores the resulting profile, prevents duplicate records for the same name, and exposes endpoints to create, read, filter, and delete stored profiles.
 
-The API calls the Genderize API, extracts `gender`, `probability`, and `count`, renames `count` to `sample_size`, computes `is_confident`, and adds a dynamic `processed_at` timestamp in UTC ISO 8601 format.
+External APIs used:
 
-## Endpoint
+- `Genderize` for gender and probability
+- `Agify` for age
+- `Nationalize` for country prediction
 
-### `GET /api/classify?name={name}`
+## Implemented Endpoints
 
-Success response:
+### `POST /api/profiles`
+
+Request body:
 
 ```json
 {
-  "status": "success",
-  "data": {
-    "name": "john",
-    "gender": "male",
-    "probability": 0.99,
-    "sample_size": 1234,
-    "is_confident": true,
-    "processed_at": "2026-04-01T12:00:00Z"
-  }
+  "name": "ella"
 }
 ```
 
-Error response format:
+Creates a new profile or returns the existing one when the same normalized name already exists.
+
+### `GET /api/profiles/{id}`
+
+Returns a single stored profile by UUID.
+
+### `GET /api/profiles`
+
+Optional query parameters:
+
+- `gender`
+- `country_id`
+- `age_group`
+
+Filtering is case-insensitive.
+
+### `DELETE /api/profiles/{id}`
+
+Deletes a stored profile and returns `204 No Content`.
+
+### `GET /api/classify`
+
+The Stage 0 endpoint is still available.
+
+## Classification Rules
+
+- Age group:
+  - `0-12` => `child`
+  - `13-19` => `teenager`
+  - `20-59` => `adult`
+  - `60+` => `senior`
+- Nationality:
+  - pick the country with the highest probability from `Nationalize`
+
+## Persistence Rules
+
+- PostgreSQL is used for storage
+- Duplicate detection is based on normalized name
+- Names are trimmed and compared case-insensitively
+- All IDs are generated as UUID v7
+- All timestamps are UTC ISO 8601
+
+## Error Handling
+
+All errors use:
 
 ```json
 {
@@ -37,24 +77,19 @@ Error response format:
 }
 ```
 
-## Validation Rules
+Status codes:
 
-- `400 Bad Request`: missing or empty `name`
-- `422 Unprocessable Entity`: the value cannot be meaningfully processed as a human name
-- `404 Not Found`: the upstream API returns `gender = null` or `count = 0`
-- `502 Bad Gateway`: upstream API failure
-- `500 Internal Server Error`: unexpected server error
+- `400` for missing or empty name
+- `422` for invalid type or invalid string-like input
+- `404` for missing profile
+- `502` for invalid upstream API responses
+- `500` for unexpected server failures
 
-Because query parameters arrive as strings in ASP.NET Core, `422` is used for values that do not behave like a real name, for example numeric values, multiple `name` values, boolean-like strings, or malformed content.
+Upstream invalid-response messages:
 
-## Confidence Logic
-
-`is_confident` is `true` only when:
-
-- `probability >= 0.7`
-- `sample_size >= 100`
-
-If either condition fails, the value is `false`.
+- `Genderize returned an invalid response`
+- `Agify returned an invalid response`
+- `Nationalize returned an invalid response`
 
 ## CORS
 
@@ -62,50 +97,88 @@ The API allows:
 
 - `Access-Control-Allow-Origin: *`
 
-## Run Locally
+## Local Run With PostgreSQL
+
+### Option 1: run PostgreSQL yourself
+
+Default connection string in development:
+
+```text
+Host=localhost;Port=5432;Database=genderize_db;Username=postgres;Password=postgres
+```
+
+Run:
 
 ```bash
-dotnet restore
+dotnet restore Genderize.sln
 dotnet build Genderize.sln
 dotnet run --project src/Genderize.Api/Genderize.Api.csproj
 ```
 
-Local HTTP URL:
+Development URL:
 
 - `http://localhost:5073`
 
-Swagger is available in development at:
+Swagger in development:
 
 - `http://localhost:5073/swagger`
 
-## Quick Test
+### Option 2: run everything with Docker Compose
 
 ```bash
-curl "http://localhost:5073/api/classify?name=john"
+docker compose up --build
 ```
 
-## Run With Docker
+That starts:
 
-Build the image:
+- PostgreSQL on `localhost:5432`
+- API on `http://localhost:8080`
+
+Swagger:
+
+- `http://localhost:8080/swagger`
+
+## Quick Test Commands
+
+Create profile:
+
+```bash
+curl -X POST "http://localhost:5073/api/profiles" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"ella"}'
+```
+
+List profiles:
+
+```bash
+curl "http://localhost:5073/api/profiles"
+```
+
+Filter profiles:
+
+```bash
+curl "http://localhost:5073/api/profiles?gender=male&country_id=NG&age_group=adult"
+```
+
+## Docker
+
+Build the API image:
 
 ```bash
 docker build -t genderize-api .
 ```
 
-Run the container:
+Run the API image directly:
 
 ```bash
-docker run --rm -p 8080:8080 genderize-api
+docker run --rm -p 8080:8080 \
+  -e ASPNETCORE_ENVIRONMENT=Development \
+  -e ConnectionStrings__DefaultConnection="Host=host.docker.internal;Port=5432;Database=genderize_db;Username=postgres;Password=postgres" \
+  genderize-api
 ```
 
-Call the API:
+## Notes
 
-```bash
-curl "http://localhost:8080/api/classify?name=john"
-```
-
-If you want Swagger inside the container too, run:
-
-```bash
-docker run --rm -p 8080:8080 -e ASPNETCORE_ENVIRONMENT=Development genderize-api
-```
+- The database schema is created automatically at startup via EF Core `EnsureCreated`
+- The service does not store upstream-invalid profiles
+- `GET /api/profiles` intentionally returns a reduced list shape to match the assessment contract

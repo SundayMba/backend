@@ -27,6 +27,11 @@ public sealed class ExceptionHandlingMiddleware
             _logger.LogWarning(exception, "A handled API exception occurred.");
             await WriteErrorResponseAsync(context, exception.StatusCode, exception.Message);
         }
+        catch (BadHttpRequestException exception)
+        {
+            _logger.LogWarning(exception, "A bad request error occurred.");
+            await WriteErrorResponseAsync(context, exception.StatusCode, exception.Message);
+        }
         catch (Exception exception)
         {
             _logger.LogError(exception, "An unexpected error occurred.");

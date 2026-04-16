@@ -32,3 +32,15 @@
 /Users/ios/Desktop/Programming/HNG14-APP/stage0/backend/src/Genderize.Api/obj/Debug/net8.0/Genderize.Api.pdb
 /Users/ios/Desktop/Programming/HNG14-APP/stage0/backend/src/Genderize.Api/obj/Debug/net8.0/Genderize.Api.genruntimeconfig.cache
 /Users/ios/Desktop/Programming/HNG14-APP/stage0/backend/src/Genderize.Api/obj/Debug/net8.0/ref/Genderize.Api.dll
+/Users/ios/Desktop/Programming/HNG14-APP/stage0/backend/src/Genderize.Api/bin/Debug/net8.0/Microsoft.EntityFrameworkCore.dll
+/Users/ios/Desktop/Programming/HNG14-APP/stage0/backend/src/Genderize.Api/bin/Debug/net8.0/Microsoft.EntityFrameworkCore.Abstractions.dll
+/Users/ios/Desktop/Programming/HNG14-APP/stage0/backend/src/Genderize.Api/bin/Debug/net8.0/Microsoft.EntityFrameworkCore.Relational.dll
+/Users/ios/Desktop/Programming/HNG14-APP/stage0/backend/src/Genderize.Api/bin/Debug/net8.0/Microsoft.Extensions.Caching.Memory.dll
+/Users/ios/Desktop/Programming/HNG14-APP/stage0/backend/src/Genderize.Api/bin/Debug/net8.0/Microsoft.Extensions.DependencyInjection.dll
+/Users/ios/Desktop/Programming/HNG14-APP/stage0/backend/src/Genderize.Api/bin/Debug/net8.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll
+/Users/ios/Desktop/Programming/HNG14-APP/stage0/backend/src/Genderize.Api/bin/Debug/net8.0/Microsoft.Extensions.Logging.dll
+/Users/ios/Desktop/Programming/HNG14-APP/stage0/backend/src/Genderize.Api/bin/Debug/net8.0/Microsoft.Extensions.Logging.Abstractions.dll
+/Users/ios/Desktop/Programming/HNG14-APP/stage0/backend/src/Genderize.Api/bin/Debug/net8.0/Microsoft.Extensions.Options.dll
+/Users/ios/Desktop/Programming/HNG14-APP/stage0/backend/src/Genderize.Api/bin/Debug/net8.0/Npgsql.dll
+/Users/ios/Desktop/Programming/HNG14-APP/stage0/backend/src/Genderize.Api/bin/Debug/net8.0/Npgsql.EntityFrameworkCore.PostgreSQL.dll
+/Users/ios/Desktop/Programming/HNG14-APP/stage0/backend/src/Genderize.Api/obj/Debug/net8.0/Genderize.Api.sourcelink.json

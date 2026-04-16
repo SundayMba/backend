@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/Users/ios/Desktop/Programming/HNG14-APP/stage0/backend/src/Genderize.Api/Genderize.Api.csproj": {}
+    "/Users/ios/Desktop/Programming/HNG14-APP/backend/src/Genderize.Api/Genderize.Api.csproj": {}
   },
   "projects": {
-    "/Users/ios/Desktop/Programming/HNG14-APP/stage0/backend/src/Genderize.Api/Genderize.Api.csproj": {
+    "/Users/ios/Desktop/Programming/HNG14-APP/backend/src/Genderize.Api/Genderize.Api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/ios/Desktop/Programming/HNG14-APP/stage0/backend/src/Genderize.Api/Genderize.Api.csproj",
+        "projectUniqueName": "/Users/ios/Desktop/Programming/HNG14-APP/backend/src/Genderize.Api/Genderize.Api.csproj",
         "projectName": "Genderize.Api",
-        "projectPath": "/Users/ios/Desktop/Programming/HNG14-APP/stage0/backend/src/Genderize.Api/Genderize.Api.csproj",
+        "projectPath": "/Users/ios/Desktop/Programming/HNG14-APP/backend/src/Genderize.Api/Genderize.Api.csproj",
         "packagesPath": "/Users/ios/.nuget/packages/",
-        "outputPath": "/Users/ios/Desktop/Programming/HNG14-APP/stage0/backend/src/Genderize.Api/obj/",
+        "outputPath": "/Users/ios/Desktop/Programming/HNG14-APP/backend/src/Genderize.Api/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/Users/ios/.nuget/NuGet/NuGet.Config"
@@ -44,6 +44,10 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
+            "Npgsql.EntityFrameworkCore.PostgreSQL": {
+              "target": "Package",
+              "version": "[8.0.11, )"
+            },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
               "version": "[6.5.0, )"
