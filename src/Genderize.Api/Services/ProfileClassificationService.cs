@@ -38,10 +38,10 @@ public sealed class ProfileClassificationService : IProfileClassificationService
         {
             Gender = genderize.Gender!,
             GenderProbability = Convert.ToDecimal(genderize.Probability),
-            SampleSize = genderize.Count,
             Age = agify.Age!.Value,
             AgeGroup = AgeGroupHelper.FromAge(agify.Age.Value),
             CountryId = topCountry.CountryId!,
+            CountryName = CountryLookupHelper.GetCountryName(topCountry.CountryId!),
             CountryProbability = topCountry.Probability
         };
     }

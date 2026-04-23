@@ -1,70 +1,143 @@
-# Backend Wizards Stage 1 API
+# Backend Wizards Stage 2 API
 
 ## Overview
 
 This project is a .NET 8 ASP.NET Core Web API backed by PostgreSQL.
 
-It accepts a name, calls three external APIs, applies classification logic, stores the resulting profile, prevents duplicate records for the same name, and exposes endpoints to create, read, filter, and delete stored profiles.
+It supports:
 
-External APIs used:
+- profile creation from external APIs
+- persistent profile storage
+- advanced filtering
+- sorting
+- pagination
+- rule-based natural language search
+- idempotent seeding of 2026 profiles
 
-- `Genderize` for gender and probability
-- `Agify` for age
-- `Nationalize` for country prediction
+The Stage 2 query engine is built on a PostgreSQL `profiles` table with these persisted fields:
 
-## Implemented Endpoints
+- `id`
+- `name`
+- `gender`
+- `gender_probability`
+- `age`
+- `age_group`
+- `country_id`
+- `country_name`
+- `country_probability`
+- `created_at`
 
-### `POST /api/profiles`
+## External APIs
 
-Request body:
+- `Genderize` -> gender and probability
+- `Agify` -> age
+- `Nationalize` -> top predicted country
+
+## Seed Data
+
+The repository includes `data/seed_profiles.json`.
+
+- The file contains `2026` profiles
+- Startup seeding is enabled by default
+- Re-running the application does not create duplicate seeded records
+
+The seed path is configured through:
 
 ```json
-{
-  "name": "ella"
+"SeedData": {
+  "Enabled": true,
+  "FilePath": "data/seed_profiles.json"
 }
 ```
 
-Creates a new profile or returns the existing one when the same normalized name already exists.
+## Endpoints
+
+### `POST /api/profiles`
+
+Creates a profile from the external APIs. If the name already exists, the existing record is returned with:
+
+```json
+{
+  "status": "success",
+  "message": "Profile already exists",
+  "data": { }
+}
+```
 
 ### `GET /api/profiles/{id}`
 
-Returns a single stored profile by UUID.
-
-### `GET /api/profiles`
-
-Optional query parameters:
-
-- `gender`
-- `country_id`
-- `age_group`
-
-Filtering is case-insensitive.
+Returns a single stored profile.
 
 ### `DELETE /api/profiles/{id}`
 
 Deletes a stored profile and returns `204 No Content`.
 
-### `GET /api/classify`
+### `GET /api/profiles`
 
-The Stage 0 endpoint is still available.
+Supports combined filters, sorting, and pagination.
 
-## Classification Rules
+Supported filters:
 
-- Age group:
-  - `0-12` => `child`
-  - `13-19` => `teenager`
-  - `20-59` => `adult`
-  - `60+` => `senior`
-- Nationality:
-  - pick the country with the highest probability from `Nationalize`
+- `gender`
+- `age_group`
+- `country_id`
+- `min_age`
+- `max_age`
+- `min_gender_probability`
+- `min_country_probability`
 
-## Persistence Rules
+Sorting:
 
-- PostgreSQL is used for storage
-- Duplicate detection is based on normalized name
-- Names are trimmed and compared case-insensitively
-- All IDs are generated as UUID v7
-- All timestamps are UTC ISO 8601
+- `sort_by=age|created_at|gender_probability`
+- `order=asc|desc`
+
+Pagination:
+
+- `page` default `1`
+- `limit` default `10`
+- `limit` max `50`
+
+Response shape:
+
+```json
+{
+  "status": "success",
+  "page": 1,
+  "limit": 10,
+  "total": 2026,
+  "data": []
+}
+```
+
+### `GET /api/profiles/search`
+
+Rule-based natural language search.
+
+Query parameter:
+
+- `q`
+
+Supported examples:
+
+- `young males`
+- `females above 30`
+- `people from angola`
+- `adult males from kenya`
+- `male and female teenagers above 17`
+
+Rules implemented:
+
+- `young` => `min_age=16` and `max_age=24`
+- `male and female` means no gender filter is applied
+- country names are mapped to ISO codes using a rule-based lookup
+- queries that cannot be interpreted return:
+
+```json
+{
+  "status": "error",
+  "message": "Unable to interpret query"
+}
+```
 
 ## Error Handling
 
@@ -77,19 +150,49 @@ All errors use:
 }
 ```
 
-Status codes:
+Status behavior:
 
-- `400` for missing or empty name
-- `422` for invalid type or invalid string-like input
-- `404` for missing profile
+- `400` for missing or empty parameters
+- `422` for invalid parameter types
+- `404` for missing profiles
 - `502` for invalid upstream API responses
 - `500` for unexpected server failures
 
-Upstream invalid-response messages:
+Query validation failures return:
 
-- `Genderize returned an invalid response`
-- `Agify returned an invalid response`
-- `Nationalize returned an invalid response`
+```json
+{
+  "status": "error",
+  "message": "Invalid query parameters"
+}
+```
+
+Invalid upstream responses return:
+
+```json
+{
+  "status": "error",
+  "message": "Genderize returned an invalid response"
+}
+```
+
+or:
+
+```json
+{
+  "status": "error",
+  "message": "Agify returned an invalid response"
+}
+```
+
+or:
+
+```json
+{
+  "status": "error",
+  "message": "Nationalize returned an invalid response"
+}
+```
 
 ## CORS
 
@@ -97,14 +200,14 @@ The API allows:
 
 - `Access-Control-Allow-Origin: *`
 
-## Local Run With PostgreSQL
+## Local Run
 
-### Option 1: run PostgreSQL yourself
+### PostgreSQL already running locally
 
-Default connection string in development:
+Default connection string:
 
 ```text
-Host=localhost;Port=5432;Database=genderize_db;Username=postgres;Password=postgres
+Host=localhost;Port=5432;Database=genderize_stage2_db;Username=postgres;Password=postgres
 ```
 
 Run:
@@ -119,11 +222,11 @@ Development URL:
 
 - `http://localhost:5073`
 
-Swagger in development:
+Swagger:
 
 - `http://localhost:5073/swagger`
 
-### Option 2: run everything with Docker Compose
+### Run API and PostgreSQL with Docker Compose
 
 ```bash
 docker compose up --build
@@ -138,9 +241,9 @@ Swagger:
 
 - `http://localhost:8080/swagger`
 
-## Quick Test Commands
+## Example Requests
 
-Create profile:
+Create a profile:
 
 ```bash
 curl -X POST "http://localhost:5073/api/profiles" \
@@ -148,37 +251,29 @@ curl -X POST "http://localhost:5073/api/profiles" \
   -d '{"name":"ella"}'
 ```
 
-List profiles:
+Filter and paginate:
 
 ```bash
-curl "http://localhost:5073/api/profiles"
+curl "http://localhost:5073/api/profiles?gender=male&country_id=NG&min_age=25&page=1&limit=10"
 ```
 
-Filter profiles:
+Sort by age descending:
 
 ```bash
-curl "http://localhost:5073/api/profiles?gender=male&country_id=NG&age_group=adult"
+curl "http://localhost:5073/api/profiles?sort_by=age&order=desc"
 ```
 
-## Docker
-
-Build the API image:
+Natural language search:
 
 ```bash
-docker build -t genderize-api .
+curl "http://localhost:5073/api/profiles/search?q=young%20males%20from%20nigeria&page=1&limit=10"
 ```
 
-Run the API image directly:
+## Implementation Notes
 
-```bash
-docker run --rm -p 8080:8080 \
-  -e ASPNETCORE_ENVIRONMENT=Development \
-  -e ConnectionStrings__DefaultConnection="Host=host.docker.internal;Port=5432;Database=genderize_db;Username=postgres;Password=postgres" \
-  genderize-api
-```
-
-## Notes
-
-- The database schema is created automatically at startup via EF Core `EnsureCreated`
-- The service does not store upstream-invalid profiles
-- `GET /api/profiles` intentionally returns a reduced list shape to match the assessment contract
+- PostgreSQL persistence uses EF Core with Npgsql
+- The schema is created automatically on startup with `EnsureCreated`
+- Seed import runs at startup after schema creation
+- Filters are combined with logical `AND`
+- Sorting and pagination are executed at the database-query level
+- The Stage 0 `GET /api/classify` endpoint is still available

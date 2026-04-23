@@ -16,9 +16,6 @@ public sealed class ProfileDetailsDto
     [JsonPropertyName("gender_probability")]
     public decimal GenderProbability { get; init; }
 
-    [JsonPropertyName("sample_size")]
-    public int SampleSize { get; init; }
-
     [JsonPropertyName("age")]
     public int Age { get; init; }
 
@@ -27,6 +24,9 @@ public sealed class ProfileDetailsDto
 
     [JsonPropertyName("country_id")]
     public required string CountryId { get; init; }
+
+    [JsonPropertyName("country_name")]
+    public required string CountryName { get; init; }
 
     [JsonPropertyName("country_probability")]
     public decimal CountryProbability { get; init; }

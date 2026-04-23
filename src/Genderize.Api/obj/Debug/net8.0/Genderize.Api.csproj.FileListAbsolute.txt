@@ -44,3 +44,4 @@
 /Users/ios/Desktop/Programming/HNG14-APP/stage0/backend/src/Genderize.Api/bin/Debug/net8.0/Npgsql.dll
 /Users/ios/Desktop/Programming/HNG14-APP/stage0/backend/src/Genderize.Api/bin/Debug/net8.0/Npgsql.EntityFrameworkCore.PostgreSQL.dll
 /Users/ios/Desktop/Programming/HNG14-APP/stage0/backend/src/Genderize.Api/obj/Debug/net8.0/Genderize.Api.sourcelink.json
+/Users/ios/Desktop/Programming/HNG14-APP/stage0/backend/src/Genderize.Api/bin/Debug/net8.0/data/seed_profiles.json

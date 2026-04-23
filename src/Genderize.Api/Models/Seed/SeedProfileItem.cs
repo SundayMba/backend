@@ -1,17 +1,14 @@
 using System.Text.Json.Serialization;
 
-namespace Genderize.Api.Models.Dtos;
+namespace Genderize.Api.Models.Seed;
 
-public sealed class ProfileListItemDto
+public sealed class SeedProfileItem
 {
-    [JsonPropertyName("id")]
-    public required Guid Id { get; init; }
-
     [JsonPropertyName("name")]
-    public required string Name { get; init; }
+    public string Name { get; init; } = string.Empty;
 
     [JsonPropertyName("gender")]
-    public required string Gender { get; init; }
+    public string Gender { get; init; } = string.Empty;
 
     [JsonPropertyName("gender_probability")]
     public decimal GenderProbability { get; init; }
@@ -20,17 +17,14 @@ public sealed class ProfileListItemDto
     public int Age { get; init; }
 
     [JsonPropertyName("age_group")]
-    public required string AgeGroup { get; init; }
+    public string AgeGroup { get; init; } = string.Empty;
 
     [JsonPropertyName("country_id")]
-    public required string CountryId { get; init; }
+    public string CountryId { get; init; } = string.Empty;
 
     [JsonPropertyName("country_name")]
-    public required string CountryName { get; init; }
+    public string CountryName { get; init; } = string.Empty;
 
     [JsonPropertyName("country_probability")]
     public decimal CountryProbability { get; init; }
-
-    [JsonPropertyName("created_at")]
-    public DateTime CreatedAt { get; init; }
 }

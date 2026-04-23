@@ -48,19 +48,58 @@ public sealed class ProfilesController : ControllerBase
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(ApiCollectionResponse<IReadOnlyList<ProfileListItemDto>>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetProfiles([FromQuery] string? gender, [FromQuery(Name = "country_id")] string? countryId, [FromQuery(Name = "age_group")] string? ageGroup, CancellationToken cancellationToken)
+    [ProducesResponseType(typeof(ApiPaginatedResponse<ProfileListItemDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetProfiles(
+        [FromQuery] string? gender,
+        [FromQuery(Name = "age_group")] string? ageGroup,
+        [FromQuery(Name = "country_id")] string? countryId,
+        [FromQuery(Name = "min_age")] string? minAge,
+        [FromQuery(Name = "max_age")] string? maxAge,
+        [FromQuery(Name = "min_gender_probability")] string? minGenderProbability,
+        [FromQuery(Name = "min_country_probability")] string? minCountryProbability,
+        [FromQuery(Name = "sort_by")] string? sortBy,
+        [FromQuery] string? order,
+        [FromQuery] string? page,
+        [FromQuery] string? limit,
+        CancellationToken cancellationToken)
     {
-        var result = await _profileService.GetProfilesAsync(
-            new ProfileQueryDto
-            {
-                Gender = gender,
-                CountryId = countryId,
-                AgeGroup = ageGroup
-            },
-            cancellationToken);
+        var query = ProfileQueryValidationHelper.Parse(
+            gender,
+            ageGroup,
+            countryId,
+            minAge,
+            maxAge,
+            minGenderProbability,
+            minCountryProbability,
+            sortBy,
+            order,
+            page,
+            limit);
 
-        return Ok(ApiCollectionResponse<IReadOnlyList<ProfileListItemDto>>.Create(result.Count, result));
+        var result = await _profileService.GetProfilesAsync(query, cancellationToken);
+
+        return Ok(ApiPaginatedResponse<ProfileListItemDto>.Create(result.Page, result.Limit, result.Total, result.Data));
+    }
+
+    [HttpGet("search")]
+    [ProducesResponseType(typeof(ApiPaginatedResponse<ProfileListItemDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> SearchProfiles([FromQuery(Name = "q")] string? query, [FromQuery] string? page, [FromQuery] string? limit, CancellationToken cancellationToken)
+    {
+        if (query is null)
+        {
+            return BadRequest(ApiErrorResponse.Create("The q query parameter is required"));
+        }
+
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return BadRequest(ApiErrorResponse.Create("The q query parameter cannot be empty"));
+        }
+
+        var pageValue = ProfileQueryValidationHelper.Parse(null, null, null, null, null, null, null, null, null, page, limit);
+        var result = await _profileService.SearchProfilesAsync(query.Trim(), pageValue.Page, pageValue.Limit, cancellationToken);
+
+        return Ok(ApiPaginatedResponse<ProfileListItemDto>.Create(result.Page, result.Limit, result.Total, result.Data));
     }
 
     [HttpDelete("{id:guid}")]

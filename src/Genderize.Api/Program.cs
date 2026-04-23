@@ -27,6 +27,8 @@ builder.Services.Configure<AgifyOptions>(
     builder.Configuration.GetSection(AgifyOptions.SectionName));
 builder.Services.Configure<NationalizeOptions>(
     builder.Configuration.GetSection(NationalizeOptions.SectionName));
+builder.Services.Configure<SeedOptions>(
+    builder.Configuration.GetSection(SeedOptions.SectionName));
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
@@ -64,6 +66,8 @@ builder.Services.AddHttpClient(HttpClientNames.NationalizeApi, (serviceProvider,
 builder.Services.AddScoped<IGenderizeService, GenderizeService>();
 builder.Services.AddScoped<IProfileClassificationService, ProfileClassificationService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
+builder.Services.AddScoped<IProfileQueryParser, ProfileQueryParser>();
+builder.Services.AddScoped<IProfileSeedService, ProfileSeedService>();
 
 builder.Services.AddCors(options =>
 {
@@ -82,6 +86,8 @@ using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await dbContext.Database.EnsureCreatedAsync();
+    var seedService = scope.ServiceProvider.GetRequiredService<IProfileSeedService>();
+    await seedService.SeedAsync();
 }
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();

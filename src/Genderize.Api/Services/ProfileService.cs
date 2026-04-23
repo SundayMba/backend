@@ -11,19 +11,20 @@ public sealed class ProfileService : IProfileService
 {
     private readonly AppDbContext _dbContext;
     private readonly IProfileClassificationService _classificationService;
+    private readonly IProfileQueryParser _profileQueryParser;
 
-    public ProfileService(AppDbContext dbContext, IProfileClassificationService classificationService)
+    public ProfileService(AppDbContext dbContext, IProfileClassificationService classificationService, IProfileQueryParser profileQueryParser)
     {
         _dbContext = dbContext;
         _classificationService = classificationService;
+        _profileQueryParser = profileQueryParser;
     }
 
     public async Task<CreateProfileResultDto> CreateProfileAsync(string name, CancellationToken cancellationToken = default)
     {
-        var normalizedName = NormalizeName(name);
         var existing = await _dbContext.Profiles
             .AsNoTracking()
-            .FirstOrDefaultAsync(profile => profile.NormalizedName == normalizedName, cancellationToken);
+            .FirstOrDefaultAsync(profile => profile.Name.ToLower() == NormalizeName(name), cancellationToken);
 
         if (existing is not null)
         {
@@ -40,13 +41,12 @@ public sealed class ProfileService : IProfileService
         {
             Id = Uuid7Helper.Create(),
             Name = name,
-            NormalizedName = normalizedName,
             Gender = classification.Gender,
             GenderProbability = classification.GenderProbability,
-            SampleSize = classification.SampleSize,
             Age = classification.Age,
             AgeGroup = classification.AgeGroup,
             CountryId = classification.CountryId,
+            CountryName = classification.CountryName,
             CountryProbability = classification.CountryProbability,
             CreatedAt = DateTime.UtcNow
         };
@@ -61,7 +61,7 @@ public sealed class ProfileService : IProfileService
         {
             var duplicate = await _dbContext.Profiles
                 .AsNoTracking()
-                .FirstAsync(item => item.NormalizedName == normalizedName, cancellationToken);
+                .FirstAsync(item => item.Name.ToLower() == NormalizeName(name), cancellationToken);
 
             return new CreateProfileResultDto
             {
@@ -91,32 +91,45 @@ public sealed class ProfileService : IProfileService
         return ProfileMappingHelper.ToDetailsDto(profile);
     }
 
-    public async Task<IReadOnlyList<ProfileListItemDto>> GetProfilesAsync(ProfileQueryDto query, CancellationToken cancellationToken = default)
+    public async Task<PaginatedResultDto<ProfileListItemDto>> GetProfilesAsync(ProfileQueryDto query, CancellationToken cancellationToken = default)
     {
-        var profiles = _dbContext.Profiles.AsNoTracking().AsQueryable();
+        var profiles = ApplyQuery(_dbContext.Profiles.AsNoTracking(), query);
+        var total = await profiles.CountAsync(cancellationToken);
 
-        if (!string.IsNullOrWhiteSpace(query.Gender))
-        {
-            var gender = query.Gender.Trim().ToLowerInvariant();
-            profiles = profiles.Where(profile => profile.Gender.ToLower() == gender);
-        }
-
-        if (!string.IsNullOrWhiteSpace(query.CountryId))
-        {
-            var countryId = query.CountryId.Trim().ToUpperInvariant();
-            profiles = profiles.Where(profile => profile.CountryId.ToUpper() == countryId);
-        }
-
-        if (!string.IsNullOrWhiteSpace(query.AgeGroup))
-        {
-            var ageGroup = query.AgeGroup.Trim().ToLowerInvariant();
-            profiles = profiles.Where(profile => profile.AgeGroup.ToLower() == ageGroup);
-        }
-
-        return await profiles
-            .OrderBy(profile => profile.CreatedAt)
+        var data = await ApplySorting(profiles, query)
+            .Skip((query.Page - 1) * query.Limit)
+            .Take(query.Limit)
             .Select(profile => ProfileMappingHelper.ToListItemDto(profile))
             .ToListAsync(cancellationToken);
+
+        return new PaginatedResultDto<ProfileListItemDto>
+        {
+            Page = query.Page,
+            Limit = query.Limit,
+            Total = total,
+            Data = data
+        };
+    }
+
+    public async Task<PaginatedResultDto<ProfileListItemDto>> SearchProfilesAsync(string queryText, int page, int limit, CancellationToken cancellationToken = default)
+    {
+        var parsed = _profileQueryParser.Parse(queryText);
+        var query = new ProfileQueryDto
+        {
+            Gender = parsed.Gender,
+            CountryId = parsed.CountryId,
+            AgeGroup = parsed.AgeGroup,
+            MinAge = parsed.MinAge,
+            MaxAge = parsed.MaxAge,
+            MinGenderProbability = parsed.MinGenderProbability,
+            MinCountryProbability = parsed.MinCountryProbability,
+            SortBy = parsed.SortBy,
+            Order = parsed.Order,
+            Page = page,
+            Limit = limit
+        };
+
+        return await GetProfilesAsync(query, cancellationToken);
     }
 
     public async Task DeleteProfileAsync(Guid id, CancellationToken cancellationToken = default)
@@ -136,5 +149,61 @@ public sealed class ProfileService : IProfileService
     private static string NormalizeName(string name)
     {
         return name.Trim().ToLowerInvariant();
+    }
+
+    private static IQueryable<Profile> ApplyQuery(IQueryable<Profile> profiles, ProfileQueryDto query)
+    {
+        if (!string.IsNullOrWhiteSpace(query.Gender))
+        {
+            profiles = profiles.Where(profile => profile.Gender == query.Gender);
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.CountryId))
+        {
+            profiles = profiles.Where(profile => profile.CountryId == query.CountryId);
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.AgeGroup))
+        {
+            profiles = profiles.Where(profile => profile.AgeGroup == query.AgeGroup);
+        }
+
+        if (query.MinAge.HasValue)
+        {
+            profiles = profiles.Where(profile => profile.Age >= query.MinAge.Value);
+        }
+
+        if (query.MaxAge.HasValue)
+        {
+            profiles = profiles.Where(profile => profile.Age <= query.MaxAge.Value);
+        }
+
+        if (query.MinGenderProbability.HasValue)
+        {
+            profiles = profiles.Where(profile => profile.GenderProbability >= query.MinGenderProbability.Value);
+        }
+
+        if (query.MinCountryProbability.HasValue)
+        {
+            profiles = profiles.Where(profile => profile.CountryProbability >= query.MinCountryProbability.Value);
+        }
+
+        return profiles;
+    }
+
+    private static IQueryable<Profile> ApplySorting(IQueryable<Profile> profiles, ProfileQueryDto query)
+    {
+        var order = query.Order ?? "desc";
+        var sortBy = query.SortBy ?? "created_at";
+
+        return (sortBy, order) switch
+        {
+            ("age", "asc") => profiles.OrderBy(profile => profile.Age).ThenBy(profile => profile.Id),
+            ("age", "desc") => profiles.OrderByDescending(profile => profile.Age).ThenBy(profile => profile.Id),
+            ("gender_probability", "asc") => profiles.OrderBy(profile => profile.GenderProbability).ThenBy(profile => profile.Id),
+            ("gender_probability", "desc") => profiles.OrderByDescending(profile => profile.GenderProbability).ThenBy(profile => profile.Id),
+            ("created_at", "asc") => profiles.OrderBy(profile => profile.CreatedAt).ThenBy(profile => profile.Id),
+            _ => profiles.OrderByDescending(profile => profile.CreatedAt).ThenBy(profile => profile.Id)
+        };
     }
 }

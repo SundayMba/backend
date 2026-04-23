@@ -13,10 +13,10 @@ public static class ProfileMappingHelper
             Name = profile.Name,
             Gender = profile.Gender,
             GenderProbability = profile.GenderProbability,
-            SampleSize = profile.SampleSize,
             Age = profile.Age,
             AgeGroup = profile.AgeGroup,
             CountryId = profile.CountryId,
+            CountryName = profile.CountryName,
             CountryProbability = profile.CountryProbability,
             CreatedAt = profile.CreatedAt
         };
@@ -29,9 +29,13 @@ public static class ProfileMappingHelper
             Id = profile.Id,
             Name = profile.Name,
             Gender = profile.Gender,
+            GenderProbability = profile.GenderProbability,
             Age = profile.Age,
             AgeGroup = profile.AgeGroup,
-            CountryId = profile.CountryId
+            CountryId = profile.CountryId,
+            CountryName = profile.CountryName,
+            CountryProbability = profile.CountryProbability,
+            CreatedAt = profile.CreatedAt
         };
     }
 }
